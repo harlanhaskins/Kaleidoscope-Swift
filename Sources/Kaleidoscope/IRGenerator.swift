@@ -1,4 +1,4 @@
-import LLVMSwift
+import LLVM
 
 enum IRError: Error, CustomStringConvertible {
     case unknownFunction(String)
@@ -62,7 +62,7 @@ class IRGenerator {
 
     @discardableResult
     func emitDefinition(_ definition: Definition) throws -> Function {
-        let function = try emitPrototype(definition.prototype)
+        let function = emitPrototype(definition.prototype)
         try withScope {
             for (idx, arg) in definition.prototype.params.enumerated() {
                 let param = function.parameter(at: idx)!
@@ -88,7 +88,7 @@ class IRGenerator {
                                             got: args.count)
             }
             let callArgs = try args.map(emitExpr)
-            return builder.buildCall(try emitPrototype(prototype), args: callArgs)
+            return builder.buildCall(emitPrototype(prototype), args: callArgs)
         case .variable(let name):
             guard let param = varBindings[name] else {
                 throw IRError.unknownVariable(name)
