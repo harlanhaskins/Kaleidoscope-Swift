@@ -13,7 +13,7 @@ enum BinaryOperator: UnicodeScalar {
 }
 
 enum Token: Equatable {
-    case leftParen, rightParen, def, extern, comma
+    case leftParen, rightParen, def, extern, comma, semicolon
     case identifier(String)
     case number(Double)
     case `operator`(BinaryOperator)
@@ -21,7 +21,8 @@ enum Token: Equatable {
     static func ==(lhs: Token, rhs: Token) -> Bool {
         switch (lhs, rhs) {
         case (.leftParen, .leftParen), (.rightParen, .rightParen),
-             (.def, .def), (.extern, .extern), (.comma, .comma):
+             (.def, .def), (.extern, .extern), (.comma, .comma),
+             (.semicolon, .semicolon):
             return true
         case let (.identifier(id1), .identifier(id2)):
             return id1 == id2
@@ -40,7 +41,7 @@ extension UnicodeScalar {
         return isspace(Int32(self.value)) != 0
     }
     var isAlphanumeric: Bool {
-        return isalnum(Int32(self.value)) != 0
+        return isalnum(Int32(self.value)) != 0 || self == "_"
     }
 }
 
@@ -83,7 +84,7 @@ class Lexer {
         // leftParen, rightParen, and the operators
         let singleTokMapping: [UnicodeScalar: Token] = [
             ",": .comma, "(": .leftParen, ")": .rightParen,
-            "+": .operator(.plus), "-": .operator(.minus),
+            ";": .semicolon, "+": .operator(.plus), "-": .operator(.minus),
             "*": .operator(.times), "/": .operator(.divide),
             "%": .operator(.mod)
         ]

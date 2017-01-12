@@ -112,13 +112,17 @@ class Parser {
 
     func parseExtern() throws -> Prototype {
         try parse(.extern)
-        return try parsePrototype()
+        let proto = try parsePrototype()
+        try parse(.semicolon)
+        return proto
     }
 
     func parseDefinition() throws -> Definition {
         try parse(.def)
         let prototype = try parsePrototype()
         let expr = try parseExpr()
-        return Definition(prototype: prototype, expr: expr)
+        let def = Definition(prototype: prototype, expr: expr)
+        try parse(.semicolon)
+        return def
     }
 }
