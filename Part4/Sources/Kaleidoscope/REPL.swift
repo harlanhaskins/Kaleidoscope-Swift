@@ -8,7 +8,7 @@ class REPL {
     typealias KaleidoscopeFnPtr = @convention(c) () -> Double
 
     init() throws {
-        self.irGen = IRGenerator()
+        self.irGen = IRGenerator(topLevel: TopLevel())
         self.targetMachine = try TargetMachine()
         self.jit = try JIT(module: irGen.module,
                            machine: self.targetMachine)
@@ -35,7 +35,7 @@ class REPL {
         let function = try newIRGen.createREPLInput(expr,
                                                     number: number)
         jit.addModule(newIRGen.module)
-        let functionAddress = jit.addressOfFunction(function)!
+        let functionAddress = jit.addressOfFunction(name: function.name)!
         let fnPtr = unsafeBitCast(functionAddress,
                                   to: KaleidoscopeFnPtr.self)
         print("\(fnPtr())")

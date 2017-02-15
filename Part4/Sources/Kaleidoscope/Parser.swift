@@ -15,24 +15,25 @@ class Parser {
         return index < tokens.count ? tokens[index] : nil
     }
 
-    func advance(n: Int = 1) {
+    func consumeToken(n: Int = 1) {
         index += n
     }
 
     func parseTopLevel() throws -> TopLevel {
-        var externs = [Prototype]()
-        var definitions = [Definition]()
+        let topLevel = TopLevel()
         while let tok = currentToken {
             switch tok {
             case .extern:
-                externs.append(try parseExtern())
+                topLevel.addExtern(try parseExtern())
             case .def:
-                definitions.append(try parseDefinition())
+                topLevel.addDefinition(try parseDefinition())
             default:
-                throw ParseError.unexpectedToken(tok)
+                let expr = try parseExpr()
+                try consume(.semicolon)
+                topLevel.addExpression(expr)
             }
         }
-        return TopLevel(externs: externs, definitions: definitions)
+        return topLevel
     }
 
     func parseExpr() throws -> Expr {
@@ -41,27 +42,35 @@ class Parser {
         }
         var expr: Expr
         switch token {
-        case .leftParen:
-            advance()
+        case .leftParen: // ( <expr> )
+            consumeToken()
             expr = try parseExpr()
-            try parse(.rightParen)
+            try consume(.rightParen)
         case .number(let value):
-            advance()
+            consumeToken()
             expr = .number(value)
         case .identifier(let value):
-            advance()
+            consumeToken()
             if case .leftParen? = currentToken {
                 let params = try parseCommaSeparated(parseExpr)
                 expr = .call(value, params)
             } else {
                 expr = .variable(value)
             }
+        case .if: // if <expr> then <expr> else <expr>
+            consumeToken()
+            let cond = try parseExpr()
+            try consume(.then)
+            let thenVal = try parseExpr()
+            try consume(.else)
+            let elseVal = try parseExpr()
+            expr = .ifelse(cond, thenVal, elseVal)
         default:
             throw ParseError.unexpectedToken(token)
         }
 
         if case .operator(let op)? = currentToken {
-            advance()
+            consumeToken()
             let rhs = try parseExpr()
             expr = .binary(expr, op, rhs)
         }
@@ -69,14 +78,14 @@ class Parser {
         return expr
     }
 
-    func parse(_ token: Token) throws {
+    func consume(_ token: Token) throws {
         guard let tok = currentToken else {
             throw ParseError.unexpectedEOF
         }
         guard token == tok else {
             throw ParseError.unexpectedToken(token)
         }
-        advance()
+        consumeToken()
     }
 
     func parseIdentifier() throws -> String {
@@ -86,7 +95,7 @@ class Parser {
         guard case .identifier(let name) = token else {
             throw ParseError.unexpectedToken(token)
         }
-        advance()
+        consumeToken()
         return name
     }
 
@@ -97,32 +106,32 @@ class Parser {
     }
 
     func parseCommaSeparated<TermType>(_ parseFn: () throws -> TermType) throws -> [TermType] {
-        try parse(.leftParen)
+        try consume(.leftParen)
         var vals = [TermType]()
         while let tok = currentToken, tok != .rightParen {
             let val = try parseFn()
             if case .comma? = currentToken {
-                try parse(.comma)
+                try consume(.comma)
             }
             vals.append(val)
         }
-        try parse(.rightParen)
+        try consume(.rightParen)
         return vals
     }
 
     func parseExtern() throws -> Prototype {
-        try parse(.extern)
+        try consume(.extern)
         let proto = try parsePrototype()
-        try parse(.semicolon)
+        try consume(.semicolon)
         return proto
     }
 
     func parseDefinition() throws -> Definition {
-        try parse(.def)
+        try consume(.def)
         let prototype = try parsePrototype()
         let expr = try parseExpr()
         let def = Definition(prototype: prototype, expr: expr)
-        try parse(.semicolon)
+        try consume(.semicolon)
         return def
     }
 }
