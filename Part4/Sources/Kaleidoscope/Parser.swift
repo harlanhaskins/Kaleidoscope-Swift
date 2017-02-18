@@ -19,21 +19,21 @@ class Parser {
         index += n
     }
 
-    func parseTopLevel() throws -> TopLevel {
-        let topLevel = TopLevel()
+    func parseFile() throws -> File {
+        let file = File()
         while let tok = currentToken {
             switch tok {
             case .extern:
-                topLevel.addExtern(try parseExtern())
+                file.addExtern(try parseExtern())
             case .def:
-                topLevel.addDefinition(try parseDefinition())
+                file.addDefinition(try parseDefinition())
             default:
                 let expr = try parseExpr()
                 try consume(.semicolon)
-                topLevel.addExpression(expr)
+                file.addExpression(expr)
             }
         }
-        return topLevel
+        return file
     }
 
     func parseExpr() throws -> Expr {

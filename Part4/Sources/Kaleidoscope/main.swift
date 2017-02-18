@@ -12,8 +12,8 @@ do {
 
     let input = try String(contentsOfFile: CommandLine.arguments[1])
     let toks = Lexer(input: input).lex()
-    let topLevel = try Parser(tokens: toks).parseTopLevel()
-    let irGen = IRGenerator(topLevel: topLevel)
+    let file = try Parser(tokens: toks).parseFile()
+    let irGen = IRGenerator(file: file)
     try irGen.emit()
     try irGen.module.verify()
     print(irGen.module)

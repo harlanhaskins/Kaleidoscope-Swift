@@ -8,24 +8,28 @@ struct Definition {
     let expr: Expr
 }
 
-struct TopLevel {
-    let externs: [Prototype]
-    let definitions: [Definition]
-    private let prototypeMap: [String: Prototype]
-
-    init(externs: [Prototype], definitions: [Definition]) {
-        self.externs = externs
-        self.definitions = definitions
-        var map = [String: Prototype]()
-        let allPrototypes = externs + definitions.map { $0.prototype }
-        for prototype in allPrototypes {
-            map[prototype.name] = prototype
-        }
-        self.prototypeMap = map
-    }
+class File {
+    private(set) var externs = [Prototype]()
+    private(set) var definitions = [Definition]()
+    private(set) var expressions = [Expr]()
+    private(set) var prototypeMap = [String: Prototype]()
 
     func prototype(name: String) -> Prototype? {
         return prototypeMap[name]
+    }
+
+    func addExpression(_ expression: Expr) {
+        expressions.append(expression)
+    }
+
+    func addExtern(_ prototype: Prototype) {
+        externs.append(prototype)
+        prototypeMap[prototype.name] = prototype
+    }
+
+    func addDefinition(_ definition: Definition) {
+        definitions.append(definition)
+        prototypeMap[definition.prototype.name] = definition.prototype
     }
 }
 
@@ -33,5 +37,6 @@ indirect enum Expr {
     case number(Double)
     case variable(String)
     case binary(Expr, BinaryOperator, Expr)
+    case ifelse(Expr, Expr, Expr)
     case call(String, [Expr])
 }

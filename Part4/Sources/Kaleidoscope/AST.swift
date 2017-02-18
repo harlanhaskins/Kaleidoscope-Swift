@@ -8,7 +8,7 @@ struct Definition {
     let expr: Expr
 }
 
-class TopLevel {
+class File {
     private(set) var externs = [Prototype]()
     private(set) var definitions = [Definition]()
     private(set) var expressions = [Expr]()

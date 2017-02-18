@@ -5,15 +5,13 @@
 #endif
 
 enum BinaryOperator: UnicodeScalar {
-    case plus = "+"
-    case minus = "-"
-    case times = "*"
-    case divide = "/"
-    case mod = "%"
+    case plus = "+", minus = "-",
+         times = "*", divide = "/",
+         mod = "%", equals = "="
 }
 
 enum Token: Equatable {
-    case leftParen, rightParen, def, extern, comma, semicolon
+    case leftParen, rightParen, def, extern, comma, semicolon, `if`, then, `else`
     case identifier(String)
     case number(Double)
     case `operator`(BinaryOperator)
@@ -22,7 +20,8 @@ enum Token: Equatable {
         switch (lhs, rhs) {
         case (.leftParen, .leftParen), (.rightParen, .rightParen),
              (.def, .def), (.extern, .extern), (.comma, .comma),
-             (.semicolon, .semicolon):
+             (.semicolon, .semicolon), (.if, .if), (.then, .then),
+             (.else, .else):
             return true
         case let (.identifier(id1), .identifier(id2)):
             return id1 == id2
@@ -36,35 +35,39 @@ enum Token: Equatable {
     }
 }
 
-extension UnicodeScalar {
+extension Character {
+    var value: Int32 {
+        return Int32(String(self).unicodeScalars.first!.value)
+    }
     var isSpace: Bool {
-        return isspace(Int32(self.value)) != 0
+        return isspace(value) != 0
     }
     var isAlphanumeric: Bool {
-        return isalnum(Int32(self.value)) != 0 || self == "_"
+        return isalnum(value) != 0 || self == "_"
     }
 }
 
 class Lexer {
-    let input: [UnicodeScalar]
-    var index = 0
+    let input: String
+    var index: String.Index
 
     init(input: String) {
-        self.input = Array(input.unicodeScalars)
+        self.input = input
+        self.index = input.startIndex
     }
 
-    var currentChar: UnicodeScalar? {
-        return index < input.count ? input[index] : nil
+    var currentChar: Character? {
+        return index < input.endIndex ? input[index] : nil
     }
 
     func advanceIndex() {
-        index += 1
+        input.characters.formIndex(after: &index)
     }
 
-    func readIdentifier() -> String {
+    func readIdentifierOrNumber() -> String {
         var str = ""
-        while let char = currentChar, char.isAlphanumeric {
-            str.unicodeScalars.append(char)
+        while let char = currentChar, char.isAlphanumeric || char == "." {
+            str.characters.append(char)
             advanceIndex()
         }
         return str
@@ -82,11 +85,11 @@ class Lexer {
 
         // Handle single-scalar tokens, like comma,
         // leftParen, rightParen, and the operators
-        let singleTokMapping: [UnicodeScalar: Token] = [
+        let singleTokMapping: [Character: Token] = [
             ",": .comma, "(": .leftParen, ")": .rightParen,
             ";": .semicolon, "+": .operator(.plus), "-": .operator(.minus),
             "*": .operator(.times), "/": .operator(.divide),
-            "%": .operator(.mod)
+            "%": .operator(.mod), "=": .operator(.equals)
         ]
 
         if let tok = singleTokMapping[char] {
@@ -98,31 +101,21 @@ class Lexer {
         // We're going to use Swift's built-in double parsing
         // logic here.
         if char.isAlphanumeric {
-            var str = readIdentifier()
-            if Int(str) != nil {
-                let backtrackIndex = index
-                if currentChar == "." {
-                    advanceIndex()
-                    let decimalStr = readIdentifier()
-                    if Int(str) != nil {
-                        str.append(".")
-                        str += decimalStr
-                    } else {
-                        index = backtrackIndex
-                    }
-                }
-                return .number(Double(str)!)
+            let str = readIdentifierOrNumber()
+
+            if let dbl = Double(str) {
+                return .number(dbl)
             }
 
             // Look for known tokens, otherwise fall back to
             // the identifier token
             switch str {
-            case "def":
-                return .def
-            case "extern":
-                return .extern
-            default:
-                return .identifier(str)
+            case "def": return .def
+            case "extern": return .extern
+            case "if": return .if
+            case "then": return .then
+            case "else": return .else
+            default: return .identifier(str)
             }
         }
         return nil

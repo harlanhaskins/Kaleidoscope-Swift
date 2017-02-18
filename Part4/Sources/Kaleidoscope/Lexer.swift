@@ -110,18 +110,12 @@ class Lexer {
             // Look for known tokens, otherwise fall back to
             // the identifier token
             switch str {
-            case "def":
-                return .def
-            case "extern":
-                return .extern
-            case "if":
-                return .if
-            case "then":
-                return .then
-            case "else":
-                return .else
-            default:
-                return .identifier(str)
+            case "def": return .def
+            case "extern": return .extern
+            case "if": return .if
+            case "then": return .then
+            case "else": return .else
+            default: return .identifier(str)
             }
         }
         return nil

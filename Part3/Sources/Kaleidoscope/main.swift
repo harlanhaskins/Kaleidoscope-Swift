@@ -1,19 +1,24 @@
 import Foundation
+import LLVM
 
-guard CommandLine.arguments.count > 1 else {
-    print("usage: Kaleidoscope <file>")
-    exit(-1)
-}
+extension String: Error {}
+
+typealias KSMainFunction = @convention(c) () -> Void
 
 do {
-    let file = try String(contentsOfFile: CommandLine.arguments[1])
-    let lexer = Lexer(input: file)
-    let parser = Parser(tokens: lexer.lex())
-    let topLevel = try parser.parseTopLevel()
-    let irGen = IRGenerator(topLevel: topLevel)
+    guard CommandLine.arguments.count > 1 else {
+        throw "usage: kaleidoscope <file>"
+    }
+
+    let input = try String(contentsOfFile: CommandLine.arguments[1])
+    let toks = Lexer(input: input).lex()
+    let file = try Parser(tokens: toks).parseFile()
+    let irGen = IRGenerator(file: file)
     try irGen.emit()
-    irGen.module.dump()
     try irGen.module.verify()
+    print(irGen.module)
+
 } catch {
     print("error: \(error)")
+    exit(-1)
 }

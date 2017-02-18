@@ -20,21 +20,21 @@ enum IRError: Error, CustomStringConvertible {
 class IRGenerator {
     let module: Module
     let builder: IRBuilder
-    let topLevel: TopLevel
+    let file: File
 
     private var parameterValues = [String: IRValue]()
 
-    init(moduleName: String = "main", topLevel: TopLevel) {
+    init(moduleName: String = "main", file: File) {
         self.module = Module(name: moduleName)
         self.builder = IRBuilder(module: module)
-        self.topLevel = topLevel
+        self.file = file
     }
 
     func emit() throws {
-        for extern in topLevel.externs {
+        for extern in file.externs {
             emitPrototype(extern)
         }
-        for definition in topLevel.definitions {
+        for definition in file.definitions {
             try emitDefinition(definition)
         }
         try emitMain()
@@ -57,7 +57,7 @@ class IRGenerator {
         let formatString = builder.buildGlobalStringPtr("%f\n")
         let printf = emitPrintf()
 
-        for expr in topLevel.expressions {
+        for expr in file.expressions {
             let val = try emitExpr(expr)
             builder.buildCall(printf, args: [formatString, val])
         }
@@ -77,12 +77,12 @@ class IRGenerator {
     }
 
     func addDefinition(_ definiton: Definition) throws -> Function {
-        topLevel.addDefinition(definiton)
+        file.addDefinition(definiton)
         return try emitDefinition(definiton)
     }
 
     func addExtern(_ prototype: Prototype) throws -> Function {
-        topLevel.addExtern(prototype)
+        file.addExtern(prototype)
         return emitPrototype(prototype)
     }
 
@@ -154,7 +154,7 @@ class IRGenerator {
                                             signed: false)
             }
         case .call(let name, let args):
-            guard let prototype = topLevel.prototype(name: name) else {
+            guard let prototype = file.prototype(name: name) else {
                 throw IRError.unknownFunction(name)
             }
             guard prototype.params.count == args.count else {

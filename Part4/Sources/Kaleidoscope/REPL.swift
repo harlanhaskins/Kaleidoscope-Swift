@@ -8,7 +8,7 @@ class REPL {
     typealias KaleidoscopeFnPtr = @convention(c) () -> Double
 
     init() throws {
-        self.irGen = IRGenerator(topLevel: TopLevel())
+        self.irGen = IRGenerator(file: File())
         self.targetMachine = try TargetMachine()
         self.jit = try JIT(module: irGen.module,
                            machine: self.targetMachine)
@@ -28,10 +28,10 @@ class REPL {
         function.dump()
     }
 
-    func handleTopLevelExpression(parser: Parser, number: Int) throws {
+    func handleFileExpression(parser: Parser, number: Int) throws {
         let expr = try parser.parseExpr()
         let newIRGen = IRGenerator(moduleName: "__anonymous_\(number)__",
-                                   topLevel: irGen.topLevel)
+                                   file: irGen.file)
         let function = try newIRGen.createREPLInput(expr,
                                                     number: number)
         jit.addModule(newIRGen.module)
@@ -61,7 +61,7 @@ class REPL {
                 case nil:
                     continue
                 default:
-                    try handleTopLevelExpression(parser: parser,
+                    try handleFileExpression(parser: parser,
                                                  number: expressionsHandled)
                     expressionsHandled += 1
                 }
