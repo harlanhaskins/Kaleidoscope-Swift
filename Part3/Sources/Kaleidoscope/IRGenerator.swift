@@ -127,7 +127,8 @@ class IRGenerator {
             case .mod:
                 return builder.buildRem(lhsVal, rhsVal)
             case .equals:
-                let comparison = builder.buildFCmp(lhsVal, rhsVal, .oeq)
+                let comparison = builder.buildFCmp(lhsVal, rhsVal,
+                                                   .orderedEqual)
                 return builder.buildIntToFP(comparison,
                                             type: FloatType.double,
                                             signed: false)
@@ -147,7 +148,7 @@ class IRGenerator {
         case .ifelse(let cond, let thenExpr, let elseExpr):
             let checkCond = builder.buildFCmp(try emitExpr(cond),
                                               FloatType.double.constant(0.0),
-                                              .one /* ordered not-equal */)
+                                              .orderedNotEqual)
 
             let thenBB = builder.currentFunction!.appendBasicBlock(named: "then")
             let elseBB = builder.currentFunction!.appendBasicBlock(named: "else")
