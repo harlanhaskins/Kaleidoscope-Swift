@@ -6,13 +6,11 @@ series.
 
 # Important Installation Instructions:
 
-> Apologies, but the project currently only works on macOS due to some build
-> behavior we need to fix for LLVMSwift. We hope to have it building on Linux
-> by the end of this week.
+> Apologies, but Part 4 of the project currently only works on macOS due to some build
+> behavior we need to fix for LLVMSwift.
 
-You must follow the instructions specificed in the README for `LLVMSwift` to be
-able to compile this project. Namely, you must copy `cllvm.pc` into
-`/usr/local/lib/pkgconfig` before the project will build.
+You must follow the instructions specificed in the README for [LLVMSwift](https://github.com/llvm-swift/LLVMSwift.git) to be
+able to compile this project.
 
 Once that's done, just open this folder and run
 
