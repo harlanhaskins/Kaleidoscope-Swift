@@ -1,8 +1,12 @@
+// swift-tools-version:4.0
 import PackageDescription
 
 let package = Package(
     name: "Kaleidoscope",
     dependencies: [
-      .Package(url: "https://github.com/trill-lang/LLVMSwift.git", majorVersion: 0)
+      .package(url: "https://github.com/llvm-swift/LLVMSwift.git", from: "0.2.1")
+    ],
+    targets: [
+      .target(name: "Kaleidoscope", dependencies: ["LLVM"])
     ]
 )

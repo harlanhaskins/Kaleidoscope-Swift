@@ -59,7 +59,7 @@ class IRGenerator {
 
         for expr in file.expressions {
             let val = try emitExpr(expr)
-            builder.buildCall(printf, args: [formatString, val])
+            _ = builder.buildCall(printf, args: [formatString, val])
         }
 
         builder.buildRetVoid()

@@ -4,7 +4,7 @@
     import Glibc
 #endif
 
-enum BinaryOperator: UnicodeScalar {
+enum BinaryOperator: Character {
     case plus = "+", minus = "-",
          times = "*", divide = "/",
          mod = "%", equals = "="
@@ -61,13 +61,13 @@ class Lexer {
     }
 
     func advanceIndex() {
-        input.characters.formIndex(after: &index)
+        input.formIndex(after: &index)
     }
 
     func readIdentifierOrNumber() -> String {
         var str = ""
         while let char = currentChar, char.isAlphanumeric || char == "." {
-            str.characters.append(char)
+            str.append(char)
             advanceIndex()
         }
         return str
