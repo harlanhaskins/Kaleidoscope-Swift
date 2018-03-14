@@ -1,7 +1,7 @@
 # Kaleidoscope-Swift
 
 This is the LLVM-backed compiler from part 3 of the
-[Building a Compiler in Swift with LLVM](https://harlanhaskins.com/2017/01/09/building-a-compiler-with-swift-in-llvm-part-3-code-generation-to-llvm-ir.html) 
+[Building a Compiler in Swift with LLVM](https://harlanhaskins.com/2017/01/11/building-a-compiler-with-swift-in-llvm-part-3-code-generation-to-llvm-ir.html) 
 series.
 
 # Important Installation Instructions:
